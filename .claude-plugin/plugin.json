@@ -1,0 +1,9 @@
+{
+  "name": "axel-todos",
+  "description": "Core AXEL commands and skills",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ahmet Meral"
+  },
+  "repository": "https://github.com/ahmetmeral/axel-todos"
+}
