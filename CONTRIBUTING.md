@@ -1,6 +1,6 @@
-# Contributing to AXEL Core
+# Contributing to AXEL Todos Plugin
 
-Thank you for your interest in contributing to AXEL Core! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to AXEL Todos Plugin! This document provides guidelines and instructions for contributing.
 
 ## Table of Contents
 
@@ -23,29 +23,38 @@ Thank you for your interest in contributing to AXEL Core! This document provides
 
 ## Development Setup
 
-AXEL Core is an XML-based DSL plugin for Claude Code. To set up your development environment:
+AXEL Todos is an XML-based DSL plugin for Claude Code that provides AI-executable task management. To set up your development environment:
 
 1. Ensure you have Claude Code installed
 2. Clone the repository:
    ```bash
-   git clone https://github.com/apiksdev/axel-core.git
-   cd axel-core
+   git clone https://github.com/apiksdev/axel-todos.git
+   cd axel-todos
    ```
 3. Review the project structure for existing documents
 
 ## Project Structure
 
 ```
-axel-core/
-├── AXEL-Bootstrap.md       # Main bootstrap (routes to references/)
-├── CLAUDE.md               # Project instructions
-├── README.md               # Project documentation
-├── CODE_OF_CONDUCT.md      # Community guidelines
-├── CONTRIBUTING.md         # This file
-├── agents/                 # Autonomous task executors
-├── commands/               # Slash command definitions
-├── references/             # Root-level reference documents
-└── skills/                 # Specialized AI expertise
+axel-todos/
+├── CLAUDE.md                 # Project instructions
+├── README.md                 # Project documentation
+├── CODE_OF_CONDUCT.md        # Community guidelines
+├── CONTRIBUTING.md           # This file
+├── agents/
+│   └── agent-axel-todo-runner/
+│       └── AGENT.md          # Todo execution agent
+├── commands/
+│   ├── axel-todos.md         # Todo management command
+│   ├── axel-workspace.md     # Workspace management command
+│   └── axel-backlogs.md      # Backlog management command
+└── skills/
+    └── skill-axel-todos/
+        ├── SKILL.md          # Skill definition
+        ├── scripts/          # Python helper scripts
+        ├── references/       # Todo format references
+        ├── templates/        # Todo/workspace templates
+        └── workflows/        # Todo lifecycle workflows
 ```
 
 ## Contribution Guidelines
@@ -83,6 +92,13 @@ When creating or modifying AXEL documents, follow these rules:
    - Workflows: Multi-step process definitions
    - Commands: Slash command definitions
 
+### Todo-Specific Guidelines
+
+- **Todo Templates**: When adding new todo templates, place them in `skills/skill-axel-todos/templates/todos/refs/`
+- **Workflows**: Todo-related workflows go in `skills/skill-axel-todos/workflows/todos/`
+- **Backlog Workflows**: Backlog-related workflows go in `skills/skill-axel-todos/workflows/backlogs/`
+- **Workspace Workflows**: Workspace-related workflows go in `skills/skill-axel-todos/workflows/workspaces/`
+
 ### Code Quality
 
 - Ensure XML is well-formed and valid
@@ -111,11 +127,21 @@ type(scope): description
 - `test`: Adding or updating tests
 - `chore`: Maintenance tasks
 
+**Scopes for this plugin:**
+- `todos`: Todo management features
+- `workspace`: Workspace features
+- `backlogs`: Backlog features
+- `agent`: Todo runner agent
+- `skill`: Skill definition changes
+- `workflow`: Workflow changes
+- `template`: Template changes
+
 **Examples:**
 ```
-feat(workflows): add new deployment workflow
-fix(agents): resolve task executor timeout issue
-docs(readme): update installation instructions
+feat(todos): add priority filtering to list command
+fix(agent): resolve parallel execution timeout issue
+docs(readme): update usage examples
+feat(workspace): add overview statistics
 ```
 
 ## Pull Request Process
@@ -138,6 +164,7 @@ docs(readme): update installation instructions
 - [ ] Comments follow single-line format
 - [ ] Documentation updated if needed
 - [ ] Commit messages follow conventions
+- [ ] Tested with actual todo creation/execution
 
 ## Code Style
 
@@ -145,12 +172,13 @@ docs(readme): update installation instructions
 
 ```xml
 <!-- Good: Single-line comment -->
-<workflow id="example-workflow">
-  <stage id="init">
-    <!-- init: Initialize the process -->
-    <action type="setup"/>
-  </stage>
-</workflow>
+<stage id="todos:create">
+  <!-- todos:create: Create a new todo -->
+  <invoke name="Skill">
+    <param name="skill" value="axel-todos:skill-axel-todos"/>
+    <param name="trigger" value="todos:create"/>
+  </invoke>
+</stage>
 
 <!-- Bad: Decorative multi-line comments -->
 <!-- ========================================
@@ -160,42 +188,30 @@ docs(readme): update installation instructions
 
 ### Naming Conventions
 
-**Plugin Root:**
-- Main bootstrap: `AXEL-Bootstrap.md` (routes to `references/`)
-- Project instructions: `CLAUDE.md`
-- Root references: `references/AXEL-{Name}.md` (e.g., `AXEL-Core.md`, `AXEL-Enforcement.md`)
-
-**Agents:**
-- Directory: `agents/agent-axel-{name}/` (e.g., `agent-axel-runner/`)
-- Definition file: `AGENT.md`
-
 **Commands:**
 - Directory: `commands/`
-- Command files: `axel-{name}.md` (e.g., `axel-commit.md`, `axel-run.md`)
+- Command files: `axel-{name}.md` (e.g., `axel-todos.md`, `axel-workspace.md`)
+
+**Agents:**
+- Directory: `agents/agent-axel-{name}/` (e.g., `agent-axel-todo-runner/`)
+- Definition file: `AGENT.md`
 
 **Skills:**
-- Directory: `skills/skill-axel-{name}/` (e.g., `skill-axel-core/`)
+- Directory: `skills/skill-axel-{name}/` (e.g., `skill-axel-todos/`)
 - Definition file: `SKILL.md`
-- Skill references: `references/AXEL-{Name}.md`
+- References: `references/AXEL-{Name}.md`
 
-**Templates (inside skills):**
-- Directory: `templates/{category}/` (e.g., `templates/agents/`, `templates/commands/`)
-- Bootstrap file: `AXEL-{Name}-Template-Bootstrap.md` (routes to `refs/`)
-- Template files: `refs/AXEL-{Name}-Tpl.md` (e.g., `AXEL-Agent-Linear-Tpl.md`)
+**Templates:**
+- Directory: `templates/{category}/` (e.g., `templates/todos/`, `templates/workspaces/`)
+- Bootstrap file: `AXEL-{Name}-Template-Bootstrap.md`
+- Template files: `refs/AXEL-{Name}-Tpl.md`
 
-**Workflows (inside skills):**
-- Directory: `workflows/{category}/` (e.g., `workflows/creators/`, `workflows/utilities/`)
-- Bootstrap file: `AXEL-{Name}-Bootstrap.md` (routes to `refs/`, optional)
-- Standalone workflow: `AXEL-{Name}-Workflow.md` (e.g., `AXEL-Commit-Workflow.md`)
-- Referenced workflows: `refs/AXEL-{Name}-Workflow.md`
+**Workflows:**
+- Directory: `workflows/{category}/` (e.g., `workflows/todos/`, `workflows/backlogs/`)
+- Workflow files: `AXEL-Cmd-{Category}-{Action}-Workflow.md`
 
-**Bootstrap Pattern:**
-- Bootstrap files route to multiple files in `refs/` subdirectory
-- Used in templates and workflows for organizing related documents
-
-**IDs and Attributes:**
-- IDs: `kebab-case` (e.g., `id="my-agent"`)
-- Types: `PascalCase` for type names
+**Stage IDs:**
+- Use namespace format: `{domain}:{action}` (e.g., `todos:create`, `todos:run-direct`)
 
 ## Reporting Issues
 
@@ -216,6 +232,6 @@ If you have questions about contributing:
 
 - Check existing issues and discussions
 - Review the documentation in `CLAUDE.md`
-- Contact the team at support@apiks.com.tr.
+- Contact the team at support@apiks.com.tr
 
-Thank you for contributing to AXEL !
+Thank you for contributing to AXEL Todos Plugin!
