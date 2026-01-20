@@ -1,9 +1,10 @@
 {
   "name": "axel-todos",
-  "description": "Core AXEL commands and skills",
+  "description": "AXEL Todo Management Plugin",
   "version": "1.0.0",
+  "license": "Apache-2.0",
   "author": {
-    "name": "Ahmet Meral"
+    "name": "Apiks"
   },
-  "repository": "https://github.com/ahmetmeral/axel-todos"
+  "repository": "https://github.com/apiksdev/axel-todos"
 }
