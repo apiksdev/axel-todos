@@ -4,7 +4,9 @@
 
 # AXEL Todos Plugin
 
-AXEL Todo management plugin for task creation, tracking, and execution.
+**AXEL** (AI XML Execution Language) plugin for AI-executable task management.
+
+Built on AXEL's XML-based DSL (Domain-Specific Language), this plugin transforms traditional todos into structured, machine-readable documents that AI agents can understand and execute autonomously. Create a todo with natural language, and AI generates implementation steps. Run it, and AI executes those steps for you.
 
 ## Features
 
