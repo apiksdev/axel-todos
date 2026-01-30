@@ -38,7 +38,8 @@ completed_at:                   # ISO date, set when status becomes completed
   </frontmatter>
 
   <templates load="always" mode="context">
-    <read src="${CLAUDE_PLUGIN_ROOT}/skills/skill-axel-todos/templates/todos/AXEL-Todo-Template-Bootstrap.md"/>
+    <read src="${CLAUDE_PLUGIN_ROOT}/skills/skill-axel-todos/templates/todos/AXEL-Todo-Linear-Tpl.md" ask="[linear, simple, sequential]"/>
+    <read src="${CLAUDE_PLUGIN_ROOT}/skills/skill-axel-todos/templates/todos/AXEL-Todo-Staged-Tpl.md" ask="[staged, complex, parallel, orchestrate]"/>
     <axel-tag-structure>
       <![CDATA[
       Todo Document Structure (Unified)

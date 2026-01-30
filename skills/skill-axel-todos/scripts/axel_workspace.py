@@ -20,20 +20,11 @@ def validate_kebab_case(name: str) -> bool:
     return bool(re.match(r'^[a-z][a-z0-9]*(-[a-z0-9]+)*$', name))
 
 
-def main():
-    parser = argparse.ArgumentParser(description="AXEL Workspace Create Script")
-    parser.add_argument("--workspace", required=True, help="Workspace name (kebab-case)")
-    parser.add_argument("--overwrite", action="store_true", help="Overwrite existing workspace")
-    parser.add_argument("--plugin-root", required=False, help="AXEL plugin root path (unused)")
-    parser.add_argument("--cwd", default=".", help="Working directory")
-
-    args = parser.parse_args()
-
-    base_path = Path(args.cwd).resolve()
-    workspace = args.workspace
-
+def create_workspace(base_path: Path, workspace: str, overwrite: bool = False) -> dict:
+    """Create workspace with given name."""
     result = {
         "success": True,
+        "action": "create",
         "workspace": workspace,
         "folders_created": [],
         "errors": []
@@ -43,23 +34,20 @@ def main():
     if workspace in RESERVED_WORKSPACES:
         result["success"] = False
         result["errors"].append(f"'{workspace}' is a reserved workspace name and cannot be created.")
-        print(json.dumps(result, indent=2, ensure_ascii=False))
-        return 1
+        return result
 
     # Validate workspace name
     if not validate_kebab_case(workspace):
         result["success"] = False
         result["errors"].append(f"Workspace name must be in kebab-case format: {workspace}")
-        print(json.dumps(result, indent=2, ensure_ascii=False))
-        return 1
+        return result
 
     # Check if workspace exists
     workspace_path = base_path / ".claude" / "workspaces" / workspace
-    if workspace_path.exists() and not args.overwrite:
+    if workspace_path.exists() and not overwrite:
         result["success"] = False
         result["errors"].append(f"Workspace already exists: {workspace}. Use --overwrite to replace.")
-        print(json.dumps(result, indent=2, ensure_ascii=False))
-        return 1
+        return result
 
     try:
         # Create folders
@@ -86,6 +74,20 @@ def main():
     except Exception as e:
         result["success"] = False
         result["errors"].append(str(e))
+
+    return result
+
+
+def main():
+    parser = argparse.ArgumentParser(description="AXEL Workspace Create Script")
+    parser.add_argument("--workspace", required=True, help="Workspace name (kebab-case)")
+    parser.add_argument("--overwrite", action="store_true", help="Overwrite existing workspace")
+    parser.add_argument("--cwd", default=".", help="Working directory")
+
+    args = parser.parse_args()
+
+    base_path = Path(args.cwd).resolve()
+    result = create_workspace(base_path, args.workspace, args.overwrite)
 
     # Output JSON result
     print(json.dumps(result, indent=2, ensure_ascii=False))

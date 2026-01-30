@@ -53,7 +53,7 @@ allowed-tools:
     <understanding>
       !! LOAD ON-DEMAND: When keywords match !!
       AXEL-Todo.md: Todo document structure, templates, frontmatter format, creation process
-      AXEL-Todos-Standards.md: Todo-specific XML elements, tag definitions, format rules
+      AXEL-Todo-Standards.md: Todo-specific XML elements, tag definitions, format rules
     </understanding>
   </documents>
 
@@ -77,6 +77,10 @@ allowed-tools:
     <understanding>
       !! MANDATORY: READ → UNDERSTAND → APPLY !!
       Trigger-based workflow registry. Match resolved trigger to execute workflow.
+
+      TWO-PHASE CREATE:
+      - todos:understanding → Handled inline by axel-todos.md command
+      - todos:create → Receives synthesis, generates document
     </understanding>
   </workflows>
 
@@ -96,19 +100,23 @@ allowed-tools:
       1. "workspace" → workspace:overview
       2. "list"      → todos:list
       3. "run"       → todos:run
-      4. default     → todos:create
+      4. "create"    → todos:create
 
     Step 3 - Match Workflow:
     - Check if resolved trigger matches workflows:operations registry
     - IF trigger matched → GO TO Step 4 (Execute workflow)
     - IF trigger NOT matched → print error and stop
 
+    NOTE: todos:understanding is handled inline by axel-todos.md command
+          It invokes todos:create after user approval
+
     Step 4 - Execute Workflow:
     - IF trigger = todos:create:
       → Load ${CLAUDE_PLUGIN_ROOT}/skills/skill-axel-todos/references/AXEL-Todo.md
       → Load ${AXEL_CORE_PLUGIN_ROOT}/references/AXEL-Checklist.md
-      → Execute matched workflow with parameters
-      → Validate created document step-by-step against checklist (all phases)
+      → Execute create workflow with synthesis parameters
+      → Validate created document step-by-step against checklist
+
     - ELSE (todos:list, todos:run, workspace:overview):
       → Execute matched workflow with parameters
   ]]></execution>

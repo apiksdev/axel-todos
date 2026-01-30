@@ -8,7 +8,6 @@ allowed-tools:
   - Edit
   - Glob
   - AskUserQuestion
-  - Skill
 ---
 
 # AXEL Command: /axel:backlogs

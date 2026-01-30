@@ -15,6 +15,7 @@ Built on AXEL's XML-based DSL (Domain-Specific Language), this plugin transforms
 - **Backlog Management**: Store and convert feature ideas to todos
 - **Priority System**: Prioritize tasks with high/medium/low levels
 - **Status Tracking**: Track todo status (pending, in-progress, completed)
+- **Verification System**: Auto-fix loop ensures todos complete with all requirements verified
 
 ## Installation
 
@@ -50,6 +51,8 @@ flowchart TB
 ```bash
 /axel:workspace {name}           # Create new workspace
 /axel:workspace create {name}    # Create new workspace (explicit)
+/axel:workspace init             # Initialize workspace from CLAUDE.md project name
+/axel:workspace bootstrap {name} # Create bootstrap for existing workspace
 /axel:workspace overview         # Overview of all workspaces
 /axel:workspace overview {name}  # Overview of specific workspace
 ```
@@ -58,6 +61,8 @@ flowchart TB
 ```bash
 /axel:workspace auth-refactor
 /axel:workspace create payment-integration
+/axel:workspace init
+/axel:workspace bootstrap auth-refactor
 /axel:workspace overview
 /axel:workspace overview auth-refactor
 ```
@@ -115,31 +120,42 @@ flowchart TB
 
 ```
 axel-todos/
-├── CLAUDE.md                 # Project configuration
-├── plugin.json               # Plugin metadata
+├── CLAUDE.md                    # Project configuration
+├── .claude-plugin/
+│   └── plugin.json              # Plugin metadata
 ├── commands/
-│   ├── axel-todos.md         # Todo command
-│   ├── axel-workspace.md     # Workspace command
-│   └── axel-backlogs.md      # Backlog command
+│   ├── axel-todos.md            # Todo command
+│   ├── axel-workspace.md        # Workspace command
+│   └── axel-backlogs.md         # Backlog command
 ├── agents/
 │   └── agent-axel-todo-runner/
-│       └── AGENT.md          # Todo runner agent
+│       └── AGENT.md             # Todo runner agent
 └── skills/
     └── skill-axel-todos/
-        ├── SKILL.md          # Skill definition
+        ├── SKILL.md             # Skill definition
         ├── scripts/
-        │   └── axel_todo.py  # Todo management script
+        │   ├── axel_todo.py     # Todo management script
+        │   └── axel_workspace.py # Workspace creation script
         ├── workflows/
-        │   ├── AXEL-Todo-Create-Workflow.md
-        │   ├── AXEL-Todo-List-Workflow.md
-        │   ├── AXEL-Todo-Run-Workflow.md
-        │   ├── AXEL-Workspace-Create-Workflow.md
-        │   └── AXEL-Backlog-Workflow.md
+        │   ├── todos/
+        │   │   ├── AXEL-Cmd-Todos-Create-Workflow.md
+        │   │   ├── AXEL-Cmd-Todos-List-Workflow.md
+        │   │   └── AXEL-Cmd-Todos-Run-Workflow.md
+        │   └── workspaces/
+        │       └── AXEL-Cmd-Workspace-Overview-Workflow.md
         ├── references/
-        │   └── AXEL-Todo.md
+        │   ├── AXEL-Todo.md
+        │   └── AXEL-Todo-Standards.md
         └── templates/
-            └── todos/
-                └── AXEL-Todo-Tpl.md
+            ├── todos/
+            │   ├── AXEL-Todo-Linear-Tpl.md
+            │   └── AXEL-Todo-Staged-Tpl.md
+            ├── backlogs/
+            │   └── AXEL-Backlog-Tpl.md
+            └── workspaces/
+                ├── AXEL-Workspace-Bootstrap-Tpl.md
+                ├── AXEL-Workspace-Overview-Markdown-Tpl.md
+                └── AXEL-Workspace-Overview-Tpl.md
 ```
 
 ## License

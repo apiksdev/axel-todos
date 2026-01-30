@@ -1,6 +1,6 @@
 ---
 name: axel-cmd-todos-list-workflow
-description: List and improve todos with workspace selection
+description: List todos with workspace selection
 type: workflow
 triggers:
   - todos list
@@ -30,7 +30,6 @@ triggers:
 
   <objective>
     List pending todos with workspace selection at the start.
-    First select workspace, then list and improve todos.
   </objective>
 
   <variables>
@@ -38,9 +37,6 @@ triggers:
     <var name="workspace" value=""/>
     <var name="base_path" value=""/>
     <var name="todos" value="[]"/>
-    <var name="todo_file" value=""/>
-    <var name="todo_content" value=""/>
-    <var name="focus" value=""/>
   </variables>
 
   <execution flow="staged">
@@ -77,21 +73,7 @@ triggers:
       <foreach var="t" in="${todos}" mode="sequential">
         <print>${t.key}</print>
       </foreach>
-      <print>
-        ---
-        Enter number to improve, or 'q' to quit:
-      </print>
-      <ask id="selection" prompt="Select:" type="text"/>
-      <goto when="selection = 'q'" to="complete"/>
-      <goto when="selection = ''" to="complete"/>
-      <tasks output="selected_todo">
-        Find todo from todos array where key = ${selection}.
-        Return the todo object or null if not found.
-      </tasks>
-      <print when="selected_todo = null">Invalid selection: ${selection}</print>
-      <goto when="selected_todo = null" to="list_todos"/>
-      <set var="todo_file" value="${selected_todo.file}"/>
-      <goto when="selected_todo != null" to="improve_todo"/>
+      <goto to="complete"/>
     </stage>
 
     <!-- no_todos: No todos in workspace -->
@@ -105,43 +87,6 @@ triggers:
       </ask>
       <goto when="retry_choice = 'yes'" to="select_workspace"/>
       <stop kind="end"/>
-    </stage>
-
-    <!-- improve_todo: Read, ask focus, run brainstorm -->
-    <stage id="improve_todo">
-      <read src="${todo_file}" output="todo_content" mode="raw"/>
-      <print when="todo_content = error">File not found: ${todo_file}</print>
-      <stop when="todo_content = error" kind="end"/>
-      <print>
-        ## Todo: ${todo_file}
-
-        ${todo_content}
-      </print>
-      <ask var="focus" prompt="What would you like to improve?" type="text"/>
-      <goto when="focus = ''" to="complete"/>
-      <print>Improving todo with focus: ${focus}</print>
-      <workflow src="${AXEL_CORE_PLUGIN_ROOT}/workflows/brainstorm/AXEL-Brainstorm-Bootstrap.md" output="synthesis">
-        <param name="topic" value="Improve todo: ${focus}"/>
-        <param name="mode" value="improve"/>
-        <param name="context" value="${todo_content}"/>
-      </workflow>
-      <goto when="synthesis.status = 'error'" to="complete"/>
-      <tasks>
-        Apply synthesis improvements to todo_content.
-        Write updated content to ${todo_file}.
-      </tasks>
-      <print>Todo improved: ${todo_file}</print>
-      <goto when="synthesis.status != 'error'" to="ask_continue"/>
-    </stage>
-
-    <!-- ask_continue: Ask if user wants to improve another -->
-    <stage id="ask_continue">
-      <ask id="continue_choice" prompt="Improve another todo?">
-        <choice key="1" value="yes" label="Yes"/>
-        <choice key="2" value="no" label="No"/>
-      </ask>
-      <goto when="continue_choice = 'yes'" to="list_todos"/>
-      <goto when="continue_choice != 'yes'" to="complete"/>
     </stage>
 
     <!-- complete: End workflow -->
