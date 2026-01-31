@@ -35,6 +35,7 @@ triggers:
 
   <variables>
     <var name="plugin_root" value="${CLAUDE_PLUGIN_ROOT}"/>
+    <var name="workspace_name" from="param.workspace_name"/>
     <var name="workspace" value=""/>
     <var name="base_path" value=""/>
     <var name="files" value="[]"/>
@@ -45,13 +46,22 @@ triggers:
 
   <execution flow="staged">
 
-    <!-- select_workspace: List workspaces and let user select -->
+    <!-- select_workspace: Use param or list workspaces for user selection -->
     <stage id="select_workspace" entry="true">
+      <!-- If workspace_name provided via param, use it directly -->
+      <goto when="workspace_name != ''" to="use_param_workspace"/>
+      <!-- Otherwise, list and let user select -->
       <bash output="ws_list">ls -1 .claude/workspaces 2>/dev/null</bash>
       <goto when="ws_list = ''" to="no_workspace"/>
       <print>## Select Workspace</print>
       <ask id="workspace_choice" prompt="Select workspace:" options="${ws_list}"/>
       <set var="workspace" value="${workspace_choice}"/>
+      <goto to="list_todos"/>
+    </stage>
+
+    <!-- use_param_workspace: Set workspace from param and continue -->
+    <stage id="use_param_workspace">
+      <set var="workspace" value="${workspace_name}"/>
       <goto to="list_todos"/>
     </stage>
 

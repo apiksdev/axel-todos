@@ -82,10 +82,11 @@ allowed-tools:
         ## /axel:todos
 
         **Usage:**
-          /axel:todos {topic}    - Create new todo (understanding → create)
-          /axel:todos list       - List todos
-          /axel:todos run        - Run todos (with workspace selection)
-          /axel:todos run {path} - Run specific todo directly
+          /axel:todos {topic}         - Create new todo (understanding → create)
+          /axel:todos list            - List todos
+          /axel:todos run             - Run todos (with workspace selection)
+          /axel:todos run {workspace} - Run todos from specific workspace
+          /axel:todos run {path}      - Run specific todo file directly
       </print>
       <stop kind="end"/>
     </stage>
@@ -239,10 +240,12 @@ allowed-tools:
       <stop kind="end"/>
     </stage>
 
-    <!-- todos:run: Route to run-direct or run-select -->
+    <!-- todos:run: Route to run-direct, run-workspace, or run-select -->
     <stage id="todos:run">
-      <goto when="rest_args != ''" to="todos:run-direct"/>
       <goto when="rest_args = ''" to="todos:run-select"/>
+      <goto when="rest_args ends_with '.md'" to="todos:run-direct"/>
+      <goto when="rest_args contains '/' OR rest_args contains '\\'" to="todos:run-direct"/>
+      <goto to="todos:run-workspace"/>
     </stage>
 
     <!-- todos:run-direct: Run specific todo by path -->
@@ -253,6 +256,16 @@ allowed-tools:
         <param name="prompt"><![CDATA[
           todo_file_path: ${rest_args}
         ]]></param>
+      </invoke>
+      <stop kind="end"/>
+    </stage>
+
+    <!-- todos:run-workspace: Run todos by workspace name -->
+    <stage id="todos:run-workspace">
+      <invoke name="Skill">
+        <param name="skill" value="axel-todos:skill-axel-todos"/>
+        <param name="trigger" value="todos:run"/>
+        <param name="workspace_name" value="${rest_args}"/>
       </invoke>
       <stop kind="end"/>
     </stage>

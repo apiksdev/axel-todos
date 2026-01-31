@@ -31,6 +31,12 @@ allowed-tools:
 
     DOCUMENT CREATION VALIDATION:
     - Only todos:create requires AXEL-Checklist.md validation
+
+    BASH TAG EXECUTION:
+    - MUST use Bash tool for <bash> element in workflows
+    - ❌ NEVER interpret <bash> content semantically
+    - ❌ NEVER substitute with Glob, Read, Grep tools
+    - <bash>python script.py</bash> → Run via Bash tool, not Read files
     ]]>
   </enforcement>
 

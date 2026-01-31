@@ -75,7 +75,8 @@ allowed-tools:
     - "[VERIFY] Summary: {passed}/{total} passed"
 
     EXECUTION LOG (MANDATORY):
-    - Log file path: .axel/temp/agent-axel-todo-runner/{YYYY-MM-DD}/{todo-filename}-{YYYY-MM-DD-HHmmss}.md
+    - Log file path: .axel/temp/agent-axel-todo-runner/{YYYY-MM-DD}/{workspace}/{todo-filename}-{YYYY-MM-DD-HHmmss}.md
+    - workspace = basename(base_path) (e.g., .claude/workspaces/apiks -> apiks)
     - Create log file at execution START
     - Append to log throughout execution (historical build log style)
 
@@ -147,16 +148,18 @@ allowed-tools:
     <![CDATA[
     LINEAR EXECUTION - Single todo with lifecycle:
 
-    Step 1 - Validate & Load:
+    Step 1 - Validate & Move:
     - Validate todo_file_path exists
-    - Read todo file content
+    - Read todo file content (minimal - only for frontmatter)
     - Parse frontmatter (name, status, priority)
     - Validate document has <execution> element
     - IF <execution> missing → STOP with error
     - Check if <verification> section exists (store for Step 4)
+    - Extract workspace from base_path: workspace = basename(base_path)
     - Initialize log file:
-      * Path: .axel/temp/agent-axel-todo-runner/{YYYY-MM-DD}/{todo-filename}-{YYYY-MM-DD-HHmmss}.md
-      * Create directory: mkdir -p .axel/temp/agent-axel-todo-runner/{YYYY-MM-DD}
+      * Path: .axel/temp/agent-axel-todo-runner/{YYYY-MM-DD}/{workspace}/{todo-filename}-{YYYY-MM-DD-HHmmss}.md
+      * Create directory: mkdir -p .axel/temp/agent-axel-todo-runner/{YYYY-MM-DD}/{workspace}
+      * Store start_time = current timestamp (epoch seconds for elapsed calculation)
       * Write log header using Bash heredoc:
         ```bash
         cat <<'EOF' > ${log_file_path}
@@ -166,13 +169,12 @@ allowed-tools:
         **File:** {todo_file_path}
         **Started:** {YYYY-MM-DD HH:mm:ss}
         **Initial Status:** {status}
+        **Start Time (epoch):** {start_time}
 
         ---
         EOF
         ```
       * Store log_file_path for subsequent appends
-
-    Step 2 - Move to In-Progress (if needed):
     - IF status = pending:
       * Run: python ${CLAUDE_PLUGIN_ROOT}/skills/skill-axel-todos/scripts/axel_todo.py
              --action move --base-path "${base_path}"
@@ -184,8 +186,12 @@ allowed-tools:
       * Print: "Todo already in-progress, continuing execution"
     - IF move fails → STOP with error
 
+    Step 2 - Load Documents:
+    - Read todo <documents> section
+    - Load required files for execution context
+    - Print: "Documents loaded for execution"
+
     Step 3 - Execute Todo:
-    - Read todo <documents> section, load required files
     - Follow todo <execution> flow (linear or staged)
     - Execute each step in order
     - Track execution progress
@@ -276,6 +282,12 @@ allowed-tools:
     - IF verification_passed = false → execution_successful = false
 
     Step 5 - Finalize Status:
+    - Calculate elapsed time:
+      * finish_time = current timestamp (epoch seconds)
+      * elapsed_seconds = finish_time - start_time
+      * elapsed_minutes = elapsed_seconds / 60 (integer division)
+      * elapsed_remainder = elapsed_seconds % 60
+      * elapsed_display = "{elapsed_minutes}m {elapsed_remainder}s" if elapsed_minutes > 0 else "{elapsed_seconds}s"
     - IF execution successful AND verification passed:
       * Run: python ${CLAUDE_PLUGIN_ROOT}/skills/skill-axel-todos/scripts/axel_todo.py
              --action move --base-path "${base_path}"
@@ -294,6 +306,7 @@ allowed-tools:
         **Fixes Applied:** {fix_count}
         **Files Modified:** {files_list}
         **Finished:** {YYYY-MM-DD HH:mm:ss}
+        **Elapsed Time:** {elapsed_display}
         EOF
         ```
       * Print: "[LOG] Execution log saved: {log_file_path}"
@@ -313,6 +326,7 @@ allowed-tools:
         **Blockers:** {blocker_list}
         **Files Modified:** {files_list}
         **Finished:** {YYYY-MM-DD HH:mm:ss}
+        **Elapsed Time:** {elapsed_display}
         EOF
         ```
       * Print: "[LOG] Execution log saved: {log_file_path}"

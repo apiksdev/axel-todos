@@ -78,6 +78,7 @@ flowchart TB
 /axel:todos create {topic}       # Create new todo
 /axel:todos list                 # List all todos
 /axel:todos run                  # Run todos (workspace selection)
+/axel:todos run {workspace}      # Run todos from specific workspace
 /axel:todos run {path}           # Run specific todo directly
 ```
 

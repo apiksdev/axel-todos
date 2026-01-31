@@ -208,8 +208,12 @@ def move_todo(file_path: Path, new_status: str, base_path: Path, check_deps: boo
                 flags=re.MULTILINE
             )
 
-    # Create target folder if needed
-    target_folder = base_path / new_status
+    # Create target folder if needed (completed uses date subfolder)
+    if new_status == "completed":
+        today = date.today().isoformat()  # YYYY-MM-DD
+        target_folder = base_path / new_status / today
+    else:
+        target_folder = base_path / new_status
     target_folder.mkdir(parents=True, exist_ok=True)
 
     # Move file
@@ -310,10 +314,48 @@ def check_dependencies(file_path: Path, base_path: Path) -> dict:
     return result
 
 
+def get_next_number(base_path: Path) -> dict:
+    """Get next available number by scanning all status folders including completed/{date}/."""
+    result = {"success": True, "next_number": 1, "max_found": 0, "scanned_folders": []}
+
+    if not base_path.exists():
+        result["success"] = False
+        result["errors"] = [f"Base path not found: {base_path}"]
+        return result
+
+    max_num = 0
+
+    # Scan pending and in-progress folders
+    for status in ["pending", "in-progress"]:
+        status_path = base_path / status
+        if status_path.exists():
+            result["scanned_folders"].append(str(status_path))
+            for f in status_path.glob("*.md"):
+                match = re.match(r'^(\d{3})-', f.name)
+                if match:
+                    max_num = max(max_num, int(match.group(1)))
+
+    # Scan completed/{date}/ subfolders
+    completed_path = base_path / "completed"
+    if completed_path.exists():
+        for date_folder in completed_path.iterdir():
+            if date_folder.is_dir():
+                result["scanned_folders"].append(str(date_folder))
+                for f in date_folder.glob("*.md"):
+                    match = re.match(r'^(\d{3})-', f.name)
+                    if match:
+                        max_num = max(max_num, int(match.group(1)))
+
+    result["max_found"] = max_num
+    result["next_number"] = max_num + 1
+    result["next_prefix"] = f"{max_num + 1:03d}"
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description="AXEL Todo Script")
     parser.add_argument("--action", required=True,
-                        choices=["list", "move", "check-deps", "list-workspaces", "check-workspace"],
+                        choices=["list", "move", "check-deps", "list-workspaces", "check-workspace", "next-number"],
                         help="Action to perform")
     parser.add_argument("--base-path", default="",
                         help="Base path for todos (e.g., .claude/workspaces/{workspace})")
@@ -353,6 +395,11 @@ def main():
             result = {"success": False, "errors": ["--file required for check-deps"]}
         else:
             result = check_dependencies(Path(args.file), base_path)
+    elif args.action == "next-number":
+        if not base_path:
+            result = {"success": False, "errors": ["--base-path required for next-number"]}
+        else:
+            result = get_next_number(base_path)
     else:
         result = {"success": False, "errors": [f"Unknown action: {args.action}"]}
 

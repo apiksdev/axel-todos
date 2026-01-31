@@ -162,7 +162,11 @@ triggers:
       * Staged: ${CLAUDE_PLUGIN_ROOT}/skills/skill-axel-todos/templates/todos/AXEL-Todo-Staged-Tpl.md
 
     Step 4 - Generate Document:
+    - Get next number from workspace:
+      * Run: PYTHONIOENCODING=utf-8 python "${CLAUDE_PLUGIN_ROOT}/skills/skill-axel-todos/scripts/axel_todo.py" --action next-number --base-path "${base_path}"
+      * Extract next_prefix from result (e.g., "001", "002", etc.)
     - Create slug from topic (kebab-case, max 50 chars)
+    - Prepend number prefix: final_slug = ${next_prefix}-${slug}
     - Apply AXEL-Todo.md <frontmatter> format:
       * Reference: AXEL-Todo.md <frontmatter> for exact field order
       * Use synthesis data for priority, description
@@ -187,7 +191,7 @@ triggers:
       * Generate <execution> steps from requirements
       * Generate <todos> from execution steps
       * Generate <verification> from requirements
-    - Path: ${pending_path}/${slug}.md
+    - Path: ${pending_path}/${next_prefix}-${slug}.md
 
     Step 5 - Generate Verification Items:
     - FOR EACH requirement in requirements:
@@ -213,8 +217,8 @@ triggers:
 
     Step 7 - Save and Confirm:
     - Create pending folder if needed
-    - Save todo document to ${pending_path}/${slug}.md
-    - Print: "✅ Created: ${pending_path}/${slug}.md"
+    - Save todo document to ${pending_path}/${next_prefix}-${slug}.md
+    - Print: "✅ Created: ${pending_path}/${next_prefix}-${slug}.md"
     - Print: "   Type: ${todo_type} | Complexity: ${complexity} | Priority: ${priority}"
     - END SINGLE FLOW
 
@@ -236,8 +240,12 @@ triggers:
     - IF exists → load and apply
 
     Step 4S - Create Each Todo:
+    - Get starting number from workspace:
+      * Run: PYTHONIOENCODING=utf-8 python "${CLAUDE_PLUGIN_ROOT}/skills/skill-axel-todos/scripts/axel_todo.py" --action next-number --base-path "${base_path}"
+      * Extract next_number from result
+      * Set start_index = next_number
     - Set created_count = 0
-    - Set index = 1
+    - Set current_index = start_index
     - FOR EACH subtask in subtasks:
 
         4S.1 - Extract subtask data:
@@ -252,7 +260,7 @@ triggers:
 
         4S.3 - Generate document:
           * Create slug from title (kebab-case, max 50 chars)
-          * Create index_prefix = zero-padded 3-digit number (001, 002, 003, etc.)
+          * Create index_prefix = zero-padded 3-digit from current_index (e.g., 001, 002, etc.)
           * Final slug = ${index_prefix}-${slug}
           * Apply AXEL-Todo.md frontmatter format
           * Use subtask data for fields
@@ -266,7 +274,7 @@ triggers:
         4S.5 - Save:
           * Save to ${pending_path}/${index_prefix}-${slug}.md
           * Increment created_count
-          * Increment index
+          * Increment current_index
           * Print: "✅ [${created_count}/${subtasks.length}] ${index_prefix}-${slug}.md (${priority})"
 
     Step 5S - Summary:
